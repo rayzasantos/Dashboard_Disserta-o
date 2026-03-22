@@ -501,42 +501,30 @@ def selecionar_top_poco(base_path: str) -> Optional[str]:
 # ============================================================
 # Metadados (CSV opcional)
 # ============================================================
-def carregar_metadata_csv(base_path: str) -> Optional[pd.DataFrame]:
-    candidates = [
-        os.path.join(base_path, "metadata_pocos.csv"),
-        os.path.join(base_path, "metadata_poços.csv"),
-    ]
-    fp = next((c for c in candidates if os.path.exists(c)), None)
-    if fp is None:
-        return None
+INFO_POCOS_DF = pd.DataFrame({
+    "Poço": ["3-BRSA-1148-SE","3-BRSA-1098-SE","3-BRSA-1093-SE","3-SZ-464-SE","3-BRSA-912-SE",
+             "3-BRSA-1279-SE","3-BRSA-1262-SE","3-BRSA-1307D-SE","6-BRSA-1202D-BA","1-BRSA-470D-BA",
+             "4-BRSA-422-BA","3-BRSA-349-RN","3-BRSA-1295-RN","3-BRSA-1193-RN","3-BRSA-1224-RN",
+             "3-BRSA-1210-RN","3-BRSA-1325-RN","3-BRSA-1320-RN","3-BRSA-1341-RN","3-OGX-95-MA",
+             "4-PGN-25-MA","1-OGX-117-MA","4-PGN-19-MA","7-GVB-8-MA","7-GVB-6-MA","7-RUC-59DP-AM",
+             "3-BRSA-515-AM","3-BRSA-1057D-AM","3-BRSA-670-AM","3-BRSA-1121-AM","3-BRSA-1057D"],
+    "Campo": ["Siririzinho","Siririzinho","Siririzinho","Siririzinho","Carmópolis","Carmópolis","Carmópolis","Carmópolis",
+              "Dom João","Guanambi","CEXIS","Canto do Amaro","Canto do Amaro","Canto do Amaro","Estreito","Estreito",
+              "Estreito","Alto do Rodrigues","Alto do Rodrigues","Gavião Branco","Gavião Tesoura","Gavião Tesoura",
+              "Gavião Tesoura","Gavião Branco","Gavião Branco","Rio Urucu","Rio Urucu","Rio Urucu","Rio Urucu","Rio Urucu","NA"],
+    "Bacia": ["Sergipe","Sergipe","Sergipe","Sergipe","Sergipe","Sergipe","Sergipe","Sergipe",
+              "Recôncavo","Recôncavo","Recôncavo","Potiguar","Potiguar","Potiguar","Potiguar","Potiguar",
+              "Potiguar","Potiguar","Potiguar","Parnaíba","Parnaíba","Parnaíba","Parnaíba","Parnaíba",
+              "Parnaíba","Solimões","Solimões","Solimões","Solimões","Solimões","NA"]
+})
 
-    try:
-        md = pd.read_csv(fp)
-        md.columns = [str(c).strip().lower() for c in md.columns]
-        rename = {}
-        if "poço" in md.columns and "poco" not in md.columns:
-            rename["poço"] = "poco"
-        if rename:
-            md = md.rename(columns=rename)
-        if "poco" not in md.columns:
-            return None
-        for c in ["bacia", "campo"]:
-            if c not in md.columns:
-                md[c] = np.nan
-        md["poco"] = md["poco"].astype(str).str.strip()
-        return md[["poco", "bacia", "campo"]].copy()
-    except Exception as e:
-        logger.warning("Falha ao carregar metadata CSV: %s", e)
-        return None
-
-def obter_informacoes_poco(arquivo: str, metadata: Optional[pd.DataFrame]) -> Tuple[str, str]:
+def obter_informacoes_poco(arquivo: str, metadata: Optional[pd.DataFrame] = None) -> Tuple[str, str]:
     chave = os.path.splitext(os.path.basename(arquivo))[0]
-    if metadata is not None and not metadata.empty:
-        row = metadata.loc[metadata["poco"] == chave]
-        if not row.empty:
-            campo = row["campo"].iloc[0] if pd.notna(row["campo"].iloc[0]) else "(sem cadastro)"
-            bacia = row["bacia"].iloc[0] if pd.notna(row["bacia"].iloc[0]) else "(sem cadastro)"
-            return str(campo), str(bacia)
+    row = INFO_POCOS_DF.loc[INFO_POCOS_DF["Poço"] == chave]
+    if not row.empty:
+        campo = row["Campo"].iloc[0] if pd.notna(row["Campo"].iloc[0]) else "(sem cadastro)"
+        bacia = row["Bacia"].iloc[0] if pd.notna(row["Bacia"].iloc[0]) else "(sem cadastro)"
+        return str(campo), str(bacia)
     return "(sem cadastro)", "(sem cadastro)"
 
 # ============================================================
@@ -596,7 +584,6 @@ def get_maximos_globais():
     return _cache["maximos"]
 
 ensure_data_dir(DATA_PATH)
-metadata_df = carregar_metadata_csv(DATA_PATH)
 arquivos = listar_excels(DATA_PATH)
 valor_inicial = selecionar_top_poco(DATA_PATH) if arquivos else None
 opcoes_dropdown = [{"label": f, "value": f} for f in arquivos]
@@ -734,9 +721,9 @@ app_layout = dbc.Container(
                             children=[
                                 dbc.Tab(label="Séries de Perfilagem", tab_id="series"),
                                 dbc.Tab(label="Correlação de Spearman", tab_id="correlacao"),
-                                dbc.Tab(label="Remoções & QC", tab_id="remocao"),
-                                dbc.Tab(label="Min–Max (Bruto)", tab_id="minmax"),
-                                dbc.Tab(label="Máximos Globais (Bruto)", tab_id="maximos"),
+                                dbc.Tab(label="Remoções e Controle de Qualidade", tab_id="remocao"),
+                                dbc.Tab(label="Min-Max", tab_id="minmax"),
+                                dbc.Tab(label="Máximos Globais", tab_id="maximos"),
                             ],
                         ),
                         html.Div(id="tab-content", className="mt-2"),
@@ -1077,7 +1064,7 @@ def preparar_controles(n_clicks, arquivo):
         marks = {0: "0", 500: "500", 1000: "1k"}
         label = "Sem coluna de profundidade"
 
-    campo, bacia = obter_informacoes_poco(arquivo, metadata_df)
+    campo, bacia = obter_informacoes_poco(arquivo)
     campo_info = html.Div([html.Span("Campo: ", className="fw-bold"), html.Span(campo)])
     bacia_info = html.Div([html.Span("Bacia: ", className="fw-bold"), html.Span(bacia)])
 
@@ -1123,7 +1110,7 @@ def renderizar(active_tab, n_clicks, selected_values, view_mode, smooth_win,
         ])
 
         return html.Div([
-            html.H4("Máximos Globais (RAW — sem QC)", className="text-primary mt-2"),
+            html.H4("Máximos Globais", className="text-primary mt-2"),
             dbc.Alert("Valores RAW podem conter sentinelas/fill. Use esta aba para auditoria do arquivo original.",
                       color="light", className="mt-2"),
             dbc.Table.from_dataframe(df_max, striped=True, bordered=True, hover=True,
@@ -1314,7 +1301,7 @@ def renderizar(active_tab, n_clicks, selected_values, view_mode, smooth_win,
             return dbc.Alert("Sem variáveis disponíveis.", color="info")
 
         return html.Div([
-            html.H4("Min–Max por poço — RAW (sem QC)", className="mt-2"),
+            html.H4("Min-Max por poço", className="mt-2"),
             dbc.Alert("Esta aba usa os valores exatamente como estão no arquivo (pode conter sentinelas/fill).",
                       color="light"),
             dbc.Row(
@@ -1647,7 +1634,7 @@ def plot_minmax(var, filtro, sort_mode):
     if dfv.empty:
         fig = go.Figure()
         fig.update_layout(template=TEMPLATE, title=dict(text=f"Min–Max — {var}", x=0.5), height=500)
-        return fig, dbc.Alert("Nenhum poço atende ao filtro selecionado.", color="info")
+        return fig
 
     x_min = float(dfv["Min"].min())
     x_max = float(dfv["Max"].max())
@@ -1749,39 +1736,7 @@ def plot_minmax(var, filtro, sort_mode):
         autorange="reversed", automargin=True,
     )
 
-    # Bloco de violações (se existir limite)
-    if lim_lo is not None and lim_hi is not None:
-        df_viol = dfv[dfv["Violação"]].copy()
-        nviol = int(df_viol.shape[0])
-        if not df_viol.empty:
-            df_show = df_viol[["Poço", "Min", "Max"]].copy()
-            df_show = df_show.rename(columns={"Min": "Mínimo (Bruto)", "Max": "Máximo (Bruto)"})
-            df_show["Mínimo (Bruto)"] = df_show["Mínimo (Bruto)"].map(lambda x: f"{x:.4g}".replace(".", ","))
-            df_show["Máximo (Bruto)"] = df_show["Máximo (Bruto)"].map(lambda x: f"{x:.4g}".replace(".", ","))
-            tbl = dbc.Table.from_dataframe(
-                df_show,
-                striped=True, bordered=True, hover=True, size="sm", className="mt-2"
-            )
-            bloco = html.Div([
-                dbc.Alert(
-                    [
-                        html.Strong(f"{nviol} poço(s) "),
-                        f"com valores fora do intervalo físico aceito — "
-                        f"Limite inferior: {lim_lo}  |  Limite superior: {lim_hi}",
-                    ],
-                    color="warning", className="mb-2"
-                ),
-                tbl
-            ])
-        else:
-            bloco = dbc.Alert(
-                [html.Strong("✓ "), f"Nenhum poço com violação do intervalo [{lim_lo}, {lim_hi}]."],
-                color="success"
-            )
-    else:
-        bloco = dbc.Alert("Sem limites físicos definidos para esta variável.", color="info")
-
-    return fig, bloco
+    return fig
 
 # ============================================================
 # Execução
