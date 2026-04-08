@@ -65,12 +65,39 @@ APLICAR_CLIP_FISICO = True
 # ============================================================
 # Aparência
 # ============================================================
-FONT_BASE = 15
-TITLE_SIZE = 18
-LEGEND_SIZE = 12
+FONT_BASE = 18
+TITLE_SIZE = 22
+LEGEND_SIZE = 15
 LINE_WIDTH = 2.4
-GRAPH_CONFIG = {"displaylogo": False, "responsive": True, "scrollZoom": True}
+
+# Fonte apropriada para LaTeX (Computer Modern, Serif)
+FONT_FAMILY = "Computer Modern, Times New Roman, serif"
+FONT_COLOR = "#000000"
+
+# Configuração de gráfico com opção de baixar com qualidade HD (SVG/PNG)
+GRAPH_CONFIG = {
+    "displaylogo": False, 
+    "responsive": True, 
+    "scrollZoom": True,
+    "toImageButtonOptions": {
+        "format": "png", # PNG de altíssima qualidade (funciona perfeito e fácil no Overleaf)
+        "filename": "grafico_alta_resolucao",
+        "height": 700,
+        "width": 1200,
+        "scale": 4 # Aumentando a escala para 4 gera uma imagem PNG com ótimo DPI (aprox 400dpi)
+    }
+}
 TEMPLATE = "plotly_white"
+
+# Aplica globalmente o padrão de fonte para os gráficos
+import plotly.io as pio
+pio.templates[TEMPLATE].layout.font.family = FONT_FAMILY
+pio.templates[TEMPLATE].layout.font.size = FONT_BASE
+pio.templates[TEMPLATE].layout.font.color = FONT_COLOR
+pio.templates[TEMPLATE].layout.title.font.family = FONT_FAMILY
+pio.templates[TEMPLATE].layout.title.font.color = FONT_COLOR
+pio.templates[TEMPLATE].layout.legend.font.family = FONT_FAMILY
+pio.templates[TEMPLATE].layout.legend.font.color = FONT_COLOR
 H_MAIN = 680
 
 # ============================================================
