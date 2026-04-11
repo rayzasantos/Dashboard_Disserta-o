@@ -87,6 +87,19 @@ GRAPH_CONFIG = {
         "scale": 4 # Aumentando a escala para 4 gera uma imagem PNG com ótimo DPI (aprox 400dpi)
     }
 }
+
+# Configuração especial para Min-Max: sem altura fixa para incluir todos os poços no download
+GRAPH_CONFIG_MINMAX = {
+    "displaylogo": False,
+    "responsive": True,
+    "scrollZoom": True,
+    "toImageButtonOptions": {
+        "format": "png",
+        "filename": "minmax_todos_pocos",
+        "width": 1400,  # mais largo para caber nomes dos poços
+        "scale": 3      # boa resolução sem fixar altura — usa a altura real do gráfico
+    }
+}
 TEMPLATE = "plotly_white"
 
 # Aplica globalmente o padrão de fonte para os gráficos
@@ -1369,7 +1382,7 @@ def renderizar(active_tab, n_clicks, selected_values, view_mode, smooth_win,
                 ],
                 className="g-2 mb-2"
             ),
-            dcc.Graph(id="minmax-plot", config=GRAPH_CONFIG),
+            dcc.Graph(id="minmax-plot", config=GRAPH_CONFIG_MINMAX),
             html.Div(id="minmax-tabela-violacoes", className="mt-3"),
         ])
 
