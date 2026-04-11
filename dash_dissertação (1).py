@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from dotenv import load_dotenv
-from flask import Flask, session, redirect, request, url_for
+from flask import Flask, session, redirect, request, url_for, jsonify
 
 import dash
 from dash import dcc, html, Input, Output, State, ALL, callback_context
