@@ -1434,8 +1434,8 @@ def renderizar(active_tab, n_clicks, selected_values, view_mode, smooth_win,
                             xanchor="right", x=1, font=dict(size=LEGEND_SIZE)),
                 margin=dict(l=65, r=15, t=70, b=60)
             )
-            fig.update_xaxes(showgrid=True, gridcolor="rgba(0,0,0,0.08)")
-            fig.update_yaxes(showgrid=True, gridcolor="rgba(0,0,0,0.08)")
+            fig.update_xaxes(showgrid=True, gridcolor="rgba(0,0,0,0.08)", tickfont=dict(size=FONT_BASE))
+            fig.update_yaxes(showgrid=True, gridcolor="rgba(0,0,0,0.08)", tickfont=dict(size=FONT_BASE))
 
             children = [dcc.Graph(figure=fig, config=GRAPH_CONFIG, style={"height": f"{H_MAIN}px"})]
 
@@ -1522,8 +1522,8 @@ def renderizar(active_tab, n_clicks, selected_values, view_mode, smooth_win,
             margin=dict(l=85, r=15, t=70, b=60)
         )
         fig.update_xaxes(title_text="Profundidade (m)", row=rows_n, col=1,
-                         showgrid=True, gridcolor="rgba(0,0,0,0.08)")
-        fig.update_yaxes(showgrid=True, gridcolor="rgba(0,0,0,0.08)")
+                         showgrid=True, gridcolor="rgba(0,0,0,0.08)", tickfont=dict(size=FONT_BASE))
+        fig.update_yaxes(showgrid=True, gridcolor="rgba(0,0,0,0.08)", tickfont=dict(size=FONT_BASE))
         return dcc.Graph(figure=fig, config=GRAPH_CONFIG, style={"height": f"{h_multi}px"})
 
     if active_tab == "correlacao":
@@ -1560,8 +1560,8 @@ colorscale="RdBu",
             height=H_MAIN,
             font=dict(size=FONT_BASE),
             margin=dict(l=100, r=30, t=100, b=110),
-            xaxis=dict(tickangle=-35, tickfont=dict(size=13)),
-            yaxis=dict(tickfont=dict(size=13)),
+            xaxis=dict(tickangle=-35, tickfont=dict(size=FONT_BASE)),
+            yaxis=dict(tickfont=dict(size=FONT_BASE)),
         )
         return dcc.Graph(figure=fig_corr, config=GRAPH_CONFIG, style={"height": f"{H_MAIN}px"})
 
