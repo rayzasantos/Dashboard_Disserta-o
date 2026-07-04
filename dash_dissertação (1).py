@@ -1561,7 +1561,7 @@ colorscale="RdBu",
             font=dict(size=FONT_BASE),
             margin=dict(l=100, r=30, t=100, b=110),
             xaxis=dict(tickangle=-35, tickfont=dict(size=FONT_BASE)),
-            yaxis=dict(tickfont=dict(size=FONT_BASE)),
+            yaxis=dict(tickfont=dict(size=FONT_BASE), autorange="reversed"),
         )
         return dcc.Graph(figure=fig_corr, config=GRAPH_CONFIG, style={"height": f"{H_MAIN}px"})
 
